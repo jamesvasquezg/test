@@ -25,7 +25,7 @@
 <link rel="alternate" hreflang="x-default" href="https://tecbium.com/">
 
 <!-- 📱 PWA (NUEVO Y CLAVE) -->
-<link rel="manifest" href="/manifest.json">
+<link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#000000">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="application-name" content="Tecbium">
@@ -34,11 +34,10 @@
 <meta name="apple-mobile-web-app-title" content="Tecbium">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-touch-fullscreen" content="yes">
-<meta name="msapplication-TileColor" content="#000000">
 
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png">
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png">
 <link rel="apple-touch-icon-precomposed" href="/icon-192.png">
 
 <!-- 🌐 OPEN GRAPH (FACEBOOK) -->
@@ -63,9 +62,13 @@
 <meta name="twitter:image:alt" content="Tecbium, plataforma para ver TV en vivo y escuchar radio online">
 
 <!-- ⚡ PERFORMANCE -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://cdnjs.cloudflare.com">
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preconnect" href="https://images.pexels.com">
+<link rel="dns-prefetch" href="//fonts.googleapis.com">
+<link rel="dns-prefetch" href="//fonts.gstatic.com">
 <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
 <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="//images.pexels.com">
@@ -75,6 +78,8 @@
 <link rel="shortcut icon" href="/icon-192.png">
 
 <!-- 🔤 FUENTES -->
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+
 <!-- 🎯 ICONOS -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
@@ -149,7 +154,7 @@
     body { 
       opacity: 0; 
       transition: opacity 0.28s ease;
-      font-family: system-ui, -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      font-family: 'Roboto', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       background: #000;
       color: #ffffff;
       -webkit-font-smoothing: antialiased;
@@ -1566,7 +1571,7 @@ body.offline::before {
     gtag('js', new Date());
     gtag('config', 'G-H6LX48DKC9');
   </script>
-  <script defer src="/hls.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/hls.js@1.0.0/dist/hls.min.js"></script>
 </head>
 <body>
   <div class="dark-background"></div>
@@ -2570,7 +2575,6 @@ body.offline::before {
       
       function showFavoritesView() {
         currentView = 'favorites';
-        syncViewQuery('favorites');
         document.querySelector('.categories-section').style.display = 'none';
         const categorySections = document.querySelectorAll('.category-section');
         categorySections.forEach(section => {
@@ -2593,7 +2597,6 @@ body.offline::before {
         currentView = 'all';
         currentFilterType = 'all';
         currentCategoryFilter = 'all';
-        syncViewQuery('all');
         favoritesSection.style.display = 'none';
         document.querySelector('.categories-section').style.display = 'block';
         applyTypeFilterAndUpdateUI();
@@ -2604,7 +2607,6 @@ body.offline::before {
         currentView = 'all';
         currentFilterType = 'tv';
         currentCategoryFilter = 'all';
-        syncViewQuery('tv');
         favoritesSection.style.display = 'none';
         document.querySelector('.categories-section').style.display = 'block';
         applyTypeFilterAndUpdateUI();
@@ -2615,45 +2617,10 @@ body.offline::before {
         currentView = 'all';
         currentFilterType = 'radio';
         currentCategoryFilter = 'all';
-        syncViewQuery('radio');
         favoritesSection.style.display = 'none';
         document.querySelector('.categories-section').style.display = 'block';
         applyTypeFilterAndUpdateUI();
         filterByCategory('all');
-      }
-
-      function syncViewQuery(view) {
-        const url = new URL(window.location.href);
-
-        if (view === 'all') {
-          url.searchParams.delete('view');
-        } else {
-          url.searchParams.set('view', view);
-        }
-
-        history.replaceState({}, '', url);
-      }
-
-      function applyInitialViewFromUrl() {
-        const params = new URLSearchParams(window.location.search);
-        const requestedView = params.get('view');
-
-        if (requestedView === 'tv') {
-          showTvView();
-          return;
-        }
-
-        if (requestedView === 'radio') {
-          showRadioView();
-          return;
-        }
-
-        if (requestedView === 'favorites') {
-          showFavoritesView();
-          return;
-        }
-
-        showHomeView();
       }
       
       function openMobileSearch() {
@@ -2784,12 +2751,17 @@ body.offline::before {
         }); } catch (error) {}
       }
       const savedSrc = storageGet('tecbium_current_src');
-      if (savedSrc) {
+      const savedType = storageGet('tecbium_current_type');
+      if (savedSrc && savedType !== 'radio') {
         const savedIndex = allCards.findIndex(c => c.dataset.src === savedSrc);
         if (savedIndex !== -1) restoreSavedPlayback(savedIndex);
       }
       setTimeout(adjustFloatingPlayerPosition, 100);
-      applyInitialViewFromUrl();
+      if (window.innerWidth <= 992) {
+        showRadioView();
+      } else {
+        showHomeView();
+      }
     });
   </script>
   <script>
