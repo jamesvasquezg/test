@@ -1,23 +1,37 @@
-const STATIC_CACHE = 'tecbium-static-v2';
-const RUNTIME_CACHE = 'tecbium-runtime-v2';
-const OFFLINE_URL = '/offline.html';
+const CACHE_VERSION = 'v3';
+const STATIC_CACHE = `tecbium-static-${CACHE_VERSION}`;
+const RUNTIME_CACHE = `tecbium-runtime-${CACHE_VERSION}`;
+const APP_SCOPE = new URL(self.registration.scope);
+const OFFLINE_URL = new URL('./offline.html', APP_SCOPE).href;
 const APP_SHELL = [
-  '/',
-  '/index.html',
-  OFFLINE_URL,
-  '/manifest.webmanifest',
-  '/manifest.json',
-  '/hls.min.js',
-  '/icon-192.png',
-  '/icon-512.png',
-  '/icon-maskable-512.png',
-  '/apple-touch-icon.png',
-  '/logo.png',
-  '/screenshots/home-wide.png',
-  '/screenshots/home-narrow.png',
-  '/robots.txt',
-  '/sitemap.xml'
+  './',
+  './index.html',
+  './offline.html',
+  './manifest.webmanifest',
+  './manifest.json',
+  './hls.min.js',
+  './icon-192.png',
+  './icon-512.png',
+  './icon-maskable-512.png',
+  './apple-touch-icon.png',
+  './logo.png',
+  './screenshots/home-wide.png',
+  './screenshots/home-narrow.png',
+  './robots.txt',
+  './sitemap.xml'
 ];
+
+function isSameOrigin(url) {
+  return url.origin === APP_SCOPE.origin;
+}
+
+function isAppAsset(pathname) {
+  return pathname.startsWith(APP_SCOPE.pathname);
+}
+
+function isMetadataFile(pathname) {
+  return pathname.endsWith('/robots.txt') || pathname.endsWith('/sitemap.xml');
+}
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -51,7 +65,7 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url);
 
   // No interceptar streams o recursos externos.
-  if (url.origin !== self.location.origin) return;
+  if (!isSameOrigin(url) || !isAppAsset(url.pathname)) return;
 
   if (request.mode === 'navigate') {
     event.respondWith(
@@ -65,15 +79,14 @@ self.addEventListener('fetch', (event) => {
         })
         .catch(async () => {
           const cached = await caches.match(request, { ignoreSearch: true });
-          return cached || caches.match(OFFLINE_URL) || caches.match('/index.html');
+          return cached || caches.match(OFFLINE_URL) || caches.match(new URL('./index.html', APP_SCOPE).href);
         })
     );
     return;
   }
 
   const isStaticAsset = ['style', 'script', 'image', 'font', 'manifest'].includes(request.destination) ||
-    url.pathname === '/robots.txt' ||
-    url.pathname === '/sitemap.xml';
+    isMetadataFile(url.pathname);
 
   if (isStaticAsset) {
     event.respondWith(

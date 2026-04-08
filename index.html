@@ -25,7 +25,7 @@
 <link rel="alternate" hreflang="x-default" href="https://tecbium.com/">
 
 <!-- 📱 PWA (NUEVO Y CLAVE) -->
-<link rel="manifest" href="/manifest.json">
+<link rel="manifest" href="./manifest.webmanifest">
 <meta name="theme-color" content="#000000">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="application-name" content="Tecbium">
@@ -36,10 +36,10 @@
 <meta name="apple-touch-fullscreen" content="yes">
 <meta name="msapplication-TileColor" content="#000000">
 
-<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
-<link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png">
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-<link rel="apple-touch-icon-precomposed" href="/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png">
+<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
+<link rel="apple-touch-icon-precomposed" href="./icon-192.png">
 
 <!-- 🌐 OPEN GRAPH (FACEBOOK) -->
 <meta property="og:title" content="Tecbium - TV y Radio en vivo gratis">
@@ -69,10 +69,10 @@
 <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
 <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="//images.pexels.com">
-<link rel="preload" href="/logo.png" as="image" fetchpriority="high">
+<link rel="preload" href="./logo.png" as="image" fetchpriority="high">
 
 <!-- 🎨 ICONOS -->
-<link rel="shortcut icon" href="/icon-192.png">
+<link rel="shortcut icon" href="./icon-192.png">
 
 <!-- 🔤 FUENTES -->
 <!-- 🎯 ICONOS -->
@@ -94,7 +94,7 @@
     "url": "https://tecbium.com/",
     "logo": {
       "@type": "ImageObject",
-      "url": "https://tecbium.com/icon-512.png"
+      "url": "./icon-512.png"
     }
   }
 }
@@ -370,7 +370,7 @@
       width: 28px;
       height: 28px;
       border-radius: 6px;
-      background-image: url('/logo.png');
+      background-image: url('./logo.png');
       background-size: contain;
       background-position: center;
       background-repeat: no-repeat;
@@ -535,7 +535,7 @@
       width: 32px;
       height: 32px;
       border-radius: 6px;
-      background-image: url('/logo.png');
+      background-image: url('./logo.png');
       background-size: contain;
       background-position: center;
       background-repeat: no-repeat;
@@ -1566,7 +1566,7 @@ body.offline::before {
     gtag('js', new Date());
     gtag('config', 'G-H6LX48DKC9');
   </script>
-  <script defer src="/hls.min.js"></script>
+  <script defer src="./hls.min.js"></script>
 </head>
 <body>
   <div class="dark-background"></div>
@@ -2005,8 +2005,8 @@ body.offline::before {
           );
         }
         artwork.push(
-          { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
-          { src: '/icon-512.png', sizes: '512x512', type: 'image/png' }
+          { src: './icon-192.png', sizes: '192x192', type: 'image/png' },
+          { src: './icon-512.png', sizes: '512x512', type: 'image/png' }
         );
         navigator.mediaSession.metadata = new MediaMetadata({
           title: `${card.dataset.name || 'Tecbium'} · EN VIVO`,
@@ -2796,7 +2796,7 @@ body.offline::before {
 // ===== SERVICE WORKER =====
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/service-worker.js', { scope: '/' })
+    navigator.serviceWorker.register('./service-worker.js')
       .then(reg => {
         console.log('SW registrado');
         if (reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
