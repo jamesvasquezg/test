@@ -1,0 +1,64 @@
+DirectoryIndex index.html
+Options -MultiViews
+RewriteEngine On
+
+AddType application/manifest+json .webmanifest
+AddType application/manifest+json .json
+
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/css text/javascript application/javascript application/json application/xml text/xml image/svg+xml
+</IfModule>
+
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType image/png "access plus 1 year"
+  ExpiresByType image/jpeg "access plus 1 year"
+  ExpiresByType image/webp "access plus 1 year"
+  ExpiresByType image/svg+xml "access plus 1 year"
+  ExpiresByType text/plain "access plus 1 day"
+  ExpiresByType application/xml "access plus 1 day"
+  ExpiresByType application/manifest+json "access plus 1 day"
+</IfModule>
+
+<IfModule mod_headers.c>
+  <FilesMatch "^(index\.html|service-worker\.js)$">
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+  </FilesMatch>
+
+  <Files "service-worker.js">
+    Header set Service-Worker-Allowed "/"
+  </Files>
+
+  <FilesMatch "\.(png|jpg|jpeg|webp|svg|ico)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+
+  <FilesMatch "^(manifest\.json|manifest\.webmanifest|robots\.txt|sitemap\.xml)$">
+    Header set Cache-Control "public, max-age=86400"
+  </FilesMatch>
+
+  <Files "manifest.webmanifest">
+    Header set Content-Type "application/manifest+json; charset=UTF-8"
+  </Files>
+
+  <Files "manifest.json">
+    Header set Content-Type "application/manifest+json; charset=UTF-8"
+  </Files>
+
+  <FilesMatch "^(manifest\.json|manifest\.webmanifest|icon-192\.png|icon-512\.png|icon-maskable-512\.png|apple-touch-icon\.png|service-worker\.js|hls\.min\.js)$">
+    Header set Access-Control-Allow-Origin "*"
+  </FilesMatch>
+</IfModule>
+
+# En produccion, unificar host y HTTPS sin afectar previews o subcarpetas temporales.
+RewriteCond %{HTTP_HOST} ^(?:www\.)?tecbium\.com$ [NC]
+RewriteCond %{HTTPS} !=on [OR]
+RewriteCond %{HTTP_HOST} ^www\.tecbium\.com$ [NC]
+RewriteRule ^ https://tecbium.com%{REQUEST_URI} [L,R=301]
+
+# Mantener compatibilidad con enlaces .html y tambien permitir URLs limpias.
+# Esto evita romper la navegacion cuando el sitio se publica en una subcarpeta.
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}.html -f
+RewriteRule ^(.+?)/?$ $1.html [L]
