@@ -1,13 +1,20 @@
-const STATIC_CACHE = 'tecbium-static-v1';
-const RUNTIME_CACHE = 'tecbium-runtime-v1';
+const STATIC_CACHE = 'tecbium-static-v2';
+const RUNTIME_CACHE = 'tecbium-runtime-v2';
+const OFFLINE_URL = '/offline.html';
 const APP_SHELL = [
   '/',
   '/index.html',
+  OFFLINE_URL,
   '/manifest.webmanifest',
   '/manifest.json',
+  '/hls.min.js',
   '/icon-192.png',
   '/icon-512.png',
+  '/icon-maskable-512.png',
+  '/apple-touch-icon.png',
   '/logo.png',
+  '/screenshots/home-wide.png',
+  '/screenshots/home-narrow.png',
   '/robots.txt',
   '/sitemap.xml'
 ];
@@ -50,13 +57,15 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          const copy = response.clone();
-          caches.open(RUNTIME_CACHE).then((cache) => cache.put(request, copy));
+          if (response && response.ok) {
+            const copy = response.clone();
+            caches.open(RUNTIME_CACHE).then((cache) => cache.put(request, copy));
+          }
           return response;
         })
         .catch(async () => {
-          const cached = await caches.match(request);
-          return cached || caches.match('/index.html');
+          const cached = await caches.match(request, { ignoreSearch: true });
+          return cached || caches.match(OFFLINE_URL) || caches.match('/index.html');
         })
     );
     return;
@@ -68,11 +77,13 @@ self.addEventListener('fetch', (event) => {
 
   if (isStaticAsset) {
     event.respondWith(
-      caches.match(request).then((cached) => {
+      caches.match(request, { ignoreSearch: true }).then((cached) => {
         const networkFetch = fetch(request)
           .then((response) => {
-            const copy = response.clone();
-            caches.open(RUNTIME_CACHE).then((cache) => cache.put(request, copy));
+            if (response && response.ok) {
+              const copy = response.clone();
+              caches.open(RUNTIME_CACHE).then((cache) => cache.put(request, copy));
+            }
             return response;
           })
           .catch(() => cached);
