@@ -29,6 +29,7 @@
 <meta name="theme-color" content="#000000">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="application-name" content="Tecbium">
+<meta name="msapplication-TileColor" content="#000000">
 
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Tecbium">
@@ -37,8 +38,8 @@
 
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png">
-<link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png">
-<link rel="apple-touch-icon-precomposed" href="/icon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="apple-touch-icon-precomposed" href="/apple-touch-icon.png">
 
 <!-- 🌐 OPEN GRAPH (FACEBOOK) -->
 <meta property="og:title" content="Tecbium - TV y Radio en vivo gratis">
@@ -1897,6 +1898,18 @@ body.offline::before {
         return sanitizeUrl(match ? match[0] : cleaned);
       }
 
+      function syncViewUrl(view) {
+        try {
+          const url = new URL(window.location.href);
+          if (!view || view === 'home') {
+            url.searchParams.delete('view');
+          } else {
+            url.searchParams.set('view', view);
+          }
+          window.history.replaceState({}, '', url);
+        } catch (error) {}
+      }
+
       function getThumbMarkup(url, alt, eager = false) {
         const safeAlt = escapeHtmlAttr(alt || 'Miniatura');
         const safeSrc = sanitizeUrl(url);
@@ -3057,6 +3070,7 @@ body.offline::before {
       
       function showFavoritesView() {
         currentView = 'favorites';
+        syncViewUrl('favorites');
         document.querySelector('.categories-section').style.display = 'none';
         const categorySections = document.querySelectorAll('.category-section');
         categorySections.forEach(section => {
@@ -3079,6 +3093,7 @@ body.offline::before {
         currentView = 'all';
         currentFilterType = 'all';
         currentCategoryFilter = 'all';
+        syncViewUrl('home');
         favoritesSection.style.display = 'none';
         document.querySelector('.categories-section').style.display = 'block';
         applyTypeFilterAndUpdateUI();
@@ -3089,6 +3104,7 @@ body.offline::before {
         currentView = 'all';
         currentFilterType = 'tv';
         currentCategoryFilter = 'all';
+        syncViewUrl('tv');
         favoritesSection.style.display = 'none';
         document.querySelector('.categories-section').style.display = 'block';
         applyTypeFilterAndUpdateUI();
@@ -3099,10 +3115,38 @@ body.offline::before {
         currentView = 'all';
         currentFilterType = 'radio';
         currentCategoryFilter = 'all';
+        syncViewUrl('radio');
         favoritesSection.style.display = 'none';
         document.querySelector('.categories-section').style.display = 'block';
         applyTypeFilterAndUpdateUI();
         filterByCategory('all');
+      }
+
+      function applyInitialView() {
+        const params = new URLSearchParams(window.location.search);
+        const requestedView = params.get('view');
+
+        if (requestedView === 'tv') {
+          showTvView();
+          return;
+        }
+
+        if (requestedView === 'radio') {
+          showRadioView();
+          return;
+        }
+
+        if (requestedView === 'favorites') {
+          showFavoritesView();
+          return;
+        }
+
+        if (window.innerWidth <= 992) {
+          showTvView();
+          return;
+        }
+
+        showHomeView();
       }
       
       function openMobileSearch() {
@@ -3240,11 +3284,7 @@ body.offline::before {
       }
       setTimeout(adjustFloatingPlayerPosition, 100);
       hydrateLazyThumbs();
-      if (window.innerWidth <= 992) {
-        showTvView();
-      } else {
-        showHomeView();
-      }
+      applyInitialView();
     });
   </script>
   <script>

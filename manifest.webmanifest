@@ -1,58 +1,95 @@
 {
-  "name": "Tecbium",
+  "id": "/",
+  "name": "Tecbium - TV y Radio en vivo",
   "short_name": "Tecbium",
-  "id": "./",
-  "start_url": "./",
-  "scope": "./",
+  "description": "Plataforma gratuita para ver TV en vivo y escuchar radio online en espanol desde movil, tablet o escritorio.",
+  "lang": "es",
+  "dir": "ltr",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "display_override": ["window-controls-overlay", "standalone", "minimal-ui", "browser"],
+  "display_override": [
+    "window-controls-overlay",
+    "standalone",
+    "minimal-ui"
+  ],
   "orientation": "any",
   "background_color": "#000000",
   "theme_color": "#000000",
-  "description": "Plataforma gratuita para ver TV en vivo y escuchar radio online en español.",
-  "lang": "es",
-  "dir": "ltr",
+  "categories": [
+    "entertainment",
+    "music",
+    "news"
+  ],
   "prefer_related_applications": false,
-  "categories": ["entertainment", "music", "news"],
   "icons": [
     {
-      "src": "./icon-192.png",
+      "src": "/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "./icon-512.png",
+      "src": "/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "./icon-maskable-512.png",
-      "sizes": "512x512",
+      "src": "/icon-192-maskable.png",
+      "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "./apple-touch-icon.png",
-      "sizes": "180x180",
-      "type": "image/png"
+      "src": "/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "screenshots": [
     {
-      "src": "./screenshots/home-wide.png",
+      "src": "/screenshot-wide.png",
       "sizes": "1280x720",
       "type": "image/png",
       "form_factor": "wide",
       "label": "Vista principal de Tecbium en escritorio"
     },
     {
-      "src": "./screenshots/home-narrow.png",
-      "sizes": "720x1280",
+      "src": "/screenshot-narrow.png",
+      "sizes": "540x720",
       "type": "image/png",
       "form_factor": "narrow",
       "label": "Vista principal de Tecbium en movil"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Ver TV",
+      "short_name": "TV",
+      "description": "Abrir Tecbium mostrando canales de TV en vivo.",
+      "url": "/?view=tv",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Escuchar radio",
+      "short_name": "Radio",
+      "description": "Abrir Tecbium mostrando emisoras de radio online.",
+      "url": "/?view=radio",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
     }
   ]
 }

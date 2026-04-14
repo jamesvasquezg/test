@@ -1,53 +1,50 @@
-const CACHE_VERSION = 'v3';
-const STATIC_CACHE = `tecbium-static-${CACHE_VERSION}`;
-const RUNTIME_CACHE = `tecbium-runtime-${CACHE_VERSION}`;
-const APP_SCOPE = new URL(self.registration.scope);
-const OFFLINE_URL = new URL('./offline.html', APP_SCOPE).href;
+const CACHE_VERSION = 'tecbium-v3';
+const STATIC_CACHE = `${CACHE_VERSION}-static`;
+const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 const APP_SHELL = [
-  './',
-  './index.html',
-  './offline.html',
-  './manifest.webmanifest',
-  './manifest.json',
-  './hls.min.js',
-  './icon-192.png',
-  './icon-512.png',
-  './icon-maskable-512.png',
-  './apple-touch-icon.png',
-  './logo.png',
-  './screenshots/home-wide.png',
-  './screenshots/home-narrow.png',
-  './robots.txt',
-  './sitemap.xml'
+  '/',
+  '/index.html',
+  '/offline.html',
+  '/manifest.webmanifest',
+  '/manifest.json',
+  '/icon-192.png',
+  '/icon-512.png',
+  '/icon-192-maskable.png',
+  '/icon-512-maskable.png',
+  '/apple-touch-icon.png',
+  '/logo.png',
+  '/screenshot-wide.png',
+  '/screenshot-narrow.png',
+  '/robots.txt',
+  '/sitemap.xml'
 ];
 
-function isSameOrigin(url) {
-  return url.origin === APP_SCOPE.origin;
-}
-
-function isAppAsset(pathname) {
-  return pathname.startsWith(APP_SCOPE.pathname);
-}
-
-function isMetadataFile(pathname) {
-  return pathname.endsWith('/robots.txt') || pathname.endsWith('/sitemap.xml');
+function isCacheableResponse(response) {
+  return response && response.ok;
 }
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(STATIC_CACHE).then((cache) => cache.addAll(APP_SHELL)).then(() => self.skipWaiting())
+    caches.open(STATIC_CACHE)
+      .then((cache) => cache.addAll(APP_SHELL))
+      .then(() => self.skipWaiting())
   );
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys
-          .filter((key) => key !== STATIC_CACHE && key !== RUNTIME_CACHE)
-          .map((key) => caches.delete(key))
+    Promise.all([
+      self.registration.navigationPreload
+        ? self.registration.navigationPreload.enable()
+        : Promise.resolve(),
+      caches.keys().then((keys) =>
+        Promise.all(
+          keys
+            .filter((key) => ![STATIC_CACHE, RUNTIME_CACHE].includes(key))
+            .map((key) => caches.delete(key))
+        )
       )
-    ).then(() => self.clients.claim())
+    ]).then(() => self.clients.claim())
   );
 });
 
@@ -63,46 +60,51 @@ self.addEventListener('fetch', (event) => {
   if (request.method !== 'GET') return;
 
   const url = new URL(request.url);
-
-  // No interceptar streams o recursos externos.
-  if (!isSameOrigin(url) || !isAppAsset(url.pathname)) return;
+  if (url.origin !== self.location.origin) return;
 
   if (request.mode === 'navigate') {
-    event.respondWith(
-      fetch(request)
-        .then((response) => {
-          if (response && response.ok) {
-            const copy = response.clone();
-            caches.open(RUNTIME_CACHE).then((cache) => cache.put(request, copy));
-          }
-          return response;
-        })
-        .catch(async () => {
-          const cached = await caches.match(request, { ignoreSearch: true });
-          return cached || caches.match(OFFLINE_URL) || caches.match(new URL('./index.html', APP_SCOPE).href);
-        })
-    );
+    event.respondWith((async () => {
+      try {
+        const preloadResponse = await event.preloadResponse;
+        if (preloadResponse) {
+          const runtimeCache = await caches.open(RUNTIME_CACHE);
+          runtimeCache.put(request, preloadResponse.clone());
+          return preloadResponse;
+        }
+
+        const networkResponse = await fetch(request);
+        if (isCacheableResponse(networkResponse)) {
+          const runtimeCache = await caches.open(RUNTIME_CACHE);
+          runtimeCache.put(request, networkResponse.clone());
+        }
+        return networkResponse;
+      } catch (error) {
+        return caches.match(request) || caches.match('/offline.html') || caches.match('/index.html');
+      }
+    })());
     return;
   }
 
-  const isStaticAsset = ['style', 'script', 'image', 'font', 'manifest'].includes(request.destination) ||
-    isMetadataFile(url.pathname);
+  const isStaticAsset =
+    ['style', 'script', 'image', 'font', 'manifest'].includes(request.destination) ||
+    url.pathname === '/robots.txt' ||
+    url.pathname === '/sitemap.xml';
 
-  if (isStaticAsset) {
-    event.respondWith(
-      caches.match(request, { ignoreSearch: true }).then((cached) => {
-        const networkFetch = fetch(request)
-          .then((response) => {
-            if (response && response.ok) {
-              const copy = response.clone();
-              caches.open(RUNTIME_CACHE).then((cache) => cache.put(request, copy));
-            }
-            return response;
-          })
-          .catch(() => cached);
+  if (!isStaticAsset) return;
 
-        return cached || networkFetch;
+  event.respondWith((async () => {
+    const cachedResponse = await caches.match(request);
+    const runtimeCache = await caches.open(RUNTIME_CACHE);
+
+    const networkPromise = fetch(request)
+      .then((networkResponse) => {
+        if (isCacheableResponse(networkResponse)) {
+          runtimeCache.put(request, networkResponse.clone());
+        }
+        return networkResponse;
       })
-    );
-  }
+      .catch(() => cachedResponse);
+
+    return cachedResponse || networkPromise;
+  })());
 });
