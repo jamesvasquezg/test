@@ -1,22 +1,29 @@
 const CACHE_VERSION = 'tecbium-v3';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
+const APP_SCOPE = new URL(self.registration.scope);
+const resolveAppUrl = (path) => new URL(path, APP_SCOPE).toString();
+const resolveAppPath = (path) => new URL(path, APP_SCOPE).pathname;
+const INDEX_URL = resolveAppUrl('./index.html');
+const OFFLINE_URL = resolveAppUrl('./offline.html');
+const ROBOTS_PATH = resolveAppPath('./robots.txt');
+const SITEMAP_PATH = resolveAppPath('./sitemap.xml');
 const APP_SHELL = [
-  '/',
-  '/index.html',
-  '/offline.html',
-  '/manifest.webmanifest',
-  '/manifest.json',
-  '/icon-192.png',
-  '/icon-512.png',
-  '/icon-192-maskable.png',
-  '/icon-512-maskable.png',
-  '/apple-touch-icon.png',
-  '/logo.png',
-  '/screenshot-wide.png',
-  '/screenshot-narrow.png',
-  '/robots.txt',
-  '/sitemap.xml'
+  resolveAppUrl('./'),
+  INDEX_URL,
+  OFFLINE_URL,
+  resolveAppUrl('./manifest.webmanifest'),
+  resolveAppUrl('./manifest.json'),
+  resolveAppUrl('./icon-192.png'),
+  resolveAppUrl('./icon-512.png'),
+  resolveAppUrl('./icon-192-maskable.png'),
+  resolveAppUrl('./icon-512-maskable.png'),
+  resolveAppUrl('./apple-touch-icon.png'),
+  resolveAppUrl('./logo.png'),
+  resolveAppUrl('./screenshot-wide.png'),
+  resolveAppUrl('./screenshot-narrow.png'),
+  resolveAppUrl('./robots.txt'),
+  resolveAppUrl('./sitemap.xml')
 ];
 
 function isCacheableResponse(response) {
@@ -79,7 +86,7 @@ self.addEventListener('fetch', (event) => {
         }
         return networkResponse;
       } catch (error) {
-        return caches.match(request) || caches.match('/offline.html') || caches.match('/index.html');
+        return caches.match(request) || caches.match(OFFLINE_URL) || caches.match(INDEX_URL);
       }
     })());
     return;
@@ -87,8 +94,8 @@ self.addEventListener('fetch', (event) => {
 
   const isStaticAsset =
     ['style', 'script', 'image', 'font', 'manifest'].includes(request.destination) ||
-    url.pathname === '/robots.txt' ||
-    url.pathname === '/sitemap.xml';
+    url.pathname === ROBOTS_PATH ||
+    url.pathname === SITEMAP_PATH;
 
   if (!isStaticAsset) return;
 
